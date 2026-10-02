@@ -69,7 +69,15 @@ class PartialTS_Orlicz():
         self.use_closed_form = (isinstance(self.n_function, PowerNFunction) and 
                                  self.n_function.coeff == ((p-1)**(p-1))/(p**p))
     
-    def __call__(self, X, Y, theta, intercept):
+    def __call__(
+        self,
+        X,
+        Y,
+        theta,
+        intercept,
+        total_mass_X=None,
+        total_mass_Y=None,
+    ):
         """
         Compute Generalized DbTSW distance between X and Y.
         
@@ -84,13 +92,33 @@ class PartialTS_Orlicz():
         """
         X = X.to(self.device)
         Y = Y.to(self.device)
+
+        if total_mass_X is None:
+            total_mass_X = X.new_tensor(1.0)
+        else:
+            total_mass_X = torch.as_tensor(
+                total_mass_X, device=X.device, dtype=X.dtype
+            )
+        if total_mass_Y is None:
+            total_mass_Y = Y.new_tensor(1.0)
+        else:
+            total_mass_Y = torch.as_tensor(
+                total_mass_Y, device=Y.device, dtype=Y.dtype
+            )
         
         # Get mass and coordinates
         N, dn = X.shape
         M, dm = Y.shape
         assert dn == dm
         
-        combined_axis_coordinate, mass_XY = self.get_mass_and_coordinate(X, Y, theta, intercept)
+        combined_axis_coordinate, mass_XY = self.get_mass_and_coordinate(
+            X,
+            Y,
+            theta,
+            intercept,
+            total_mass_X=total_mass_X,
+            total_mass_Y=total_mass_Y,
+        )
         
         # Compute generalized tree Wasserstein
         gtw = self.compute_generalized_tw(mass_XY, combined_axis_coordinate)
@@ -436,13 +464,26 @@ class PartialTS_Orlicz():
 
 
         return out.to(device=device, dtype=orig_dtype)
-    def get_mass_and_coordinate(self, X, Y, theta, intercept):
+    def get_mass_and_coordinate(
+        self,
+        X,
+        Y,
+        theta,
+        intercept,
+        total_mass_X,
+        total_mass_Y,
+    ):
         """
         Project X and Y onto trees/lines and compute masses and coordinates.
         """
         N, dn = X.shape
         mass_X, axis_coordinate_X = self.project(X, theta=theta, intercept=intercept)
         mass_Y, axis_coordinate_Y = self.project(Y, theta=theta, intercept=intercept)
+
+        # project() returns branch assignments with unit total mass. Restore the
+        # original measure masses before computing subtree imbalances.
+        mass_X = mass_X * total_mass_X
+        mass_Y = mass_Y * total_mass_Y
         
         combined_axis_coordinate = torch.cat((axis_coordinate_X, axis_coordinate_Y), dim=2)
         massXY = torch.cat((mass_X, -mass_Y), dim=2)

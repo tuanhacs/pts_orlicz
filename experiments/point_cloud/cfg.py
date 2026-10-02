@@ -56,6 +56,11 @@ def get_cfg_name(args):
     meta = f"seed-{args.seed}_ep-{args.num_epoch}_lr-{args.lr}"
     if args.method == 'twd':
         name = f"mmass-{args.max_mass_generated}"
+    elif args.method == 'pts_orlicz':
+        name = (
+            f"nf-{args.n_function}_p-{args.sw_p}"
+            f"_pagg-{args.p_agg}_mmass-{args.max_mass_generated}"
+        )
     elif args.method == 'pot':
         name = f"reg-{args.pot_reg}_reg_mkl-{args.pot_reg_m_kl}"
     elif args.method == 'pawl':

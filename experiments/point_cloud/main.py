@@ -44,7 +44,7 @@ def get_loss(X, Y, method, epoch):
         g_loss = twd_calculator(real_batch_latents, fake_latents, theta, intercept, total_mass_X=total_mass_X_tensor, total_mass_Y=total_mass_Y_tensor)
     elif method == "pts_orlicz":
         # Use PartialTS_Orlicz for Orlicz geometry-based transport
-        pts_orlicz_calculator = PartialTS_Orlicz(ntrees=args.twd_ntrees, nlines=args.twd_nlines, p=args.sw_p,
+        pts_orlicz_calculator = PartialTS_Orlicz(p=args.sw_p,
                                                  delta=args.twd_delta, mass_division=args.twd_mass_division,
                                                  device=device, n_function=args.n_function, p_agg=args.p_agg, i_max=args.i_max)
         theta, intercept = generate_trees_frames(ntrees=args.twd_ntrees, nlines=args.twd_nlines, d=3, device=device)
