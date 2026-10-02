@@ -8,7 +8,7 @@ try:
     from .n_functions import EntropyLogNFunction, ExpHalfLinearCorrectedNFunction, ExpNFunction, ExpQuadraticQuarterNFunction, ExpSquaredNFunction, LinearNFunction, LogNFunction, NFunction, PowerNFunction
 except ImportError:
     from n_functions import EntropyLogNFunction, ExpHalfLinearCorrectedNFunction, ExpNFunction, ExpQuadraticQuarterNFunction, ExpSquaredNFunction, LinearNFunction, LogNFunction, NFunction, PowerNFunction
-
+from scipy.optimize import minimize_scalar
 
 class PartialTS_Orlicz():
     """
@@ -88,7 +88,7 @@ class PartialTS_Orlicz():
         # Get mass and coordinates
         N, dn = X.shape
         M, dm = Y.shape
-        assert dn == dm and M == N
+        assert dn == dm
         
         combined_axis_coordinate, mass_XY = self.get_mass_and_coordinate(X, Y, theta, intercept)
         
@@ -434,13 +434,6 @@ class PartialTS_Orlicz():
 
         out = (dist_per_tree.pow(self.p_agg).mean()).pow(1.0 / self.p_agg)
 
-        if verbose and bool(valid.any().item()):
-            print(
-                f"[Original root robust] "
-                f"k*: min={k_star[valid].min().item():.3e}, "
-                f"max={k_star[valid].max().item():.3e}, "
-                f"mean={k_star[valid].mean().item():.3e}"
-            )
 
         return out.to(device=device, dtype=orig_dtype)
     def get_mass_and_coordinate(self, X, Y, theta, intercept):
